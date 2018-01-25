@@ -1,0 +1,20 @@
+version: '3.4'
+
+services:
+  app:
+    build: .
+    volumes:
+      - .:/opt/app
+      - yarn-cache:/opt/.yarn-cache
+    ports:
+      - '3000:3000'
+    environment:
+      SLS_DEBUG: '*'
+
+  dynamodb:
+    image: deangiberson/aws-dynamodb-local
+    ports:
+      - '8000:8000'
+
+volumes:
+  yarn-cache:

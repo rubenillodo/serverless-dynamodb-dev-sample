@@ -1,0 +1,49 @@
+service: serverless-dynamodb-dev-sample
+
+plugins:
+  - serverless-plugin-typescript
+  - serverless-dynamodb-dev
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+  environment:
+      USERS_TABLE: ${self:custom.usersTable}
+
+functions:
+  health:
+    handler: src/handlers/health.default
+    events:
+      - http: GET health
+  dynamodb:
+    handler: src/handlers/dynamodb.default
+    events:
+      - http: GET dynamodb
+
+resources:
+  Resources:
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.usersTable}
+        AttributeDefinitions:
+          - AttributeName: email
+            AttributeType: S
+        KeySchema:
+          - AttributeName: email
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+custom:
+  stage: "${opt:stage, self:provider.stage}"
+  usersTable: "${self:service}-users-${self:custom.stage}"
+  dynamodb:
+    host: dynamodb
+    port: 8000
+    migrate: true
+    seeds:
+      - table: ${self:custom.usersTable}
+        sources: [./seeds/users.json]
